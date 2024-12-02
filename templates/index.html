@@ -1,0 +1,759 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CTA Ticketing System</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #404040;
+            --accent-color: #4CAF50;
+            --accent-hover: #45a049;
+            --danger-color: #cf6679;
+        }
+
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .zone-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-secondary);
+        }
+
+        .zone-title {
+            background-color: var(--bg-tertiary);
+            padding: 10px;
+            margin: -15px -15px 15px -15px;
+            border-radius: 5px 5px 0 0;
+            color: var(--text-primary);
+        }
+
+        .station-connections {
+            margin-left: 20px;
+        }
+
+        .main-station {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .connected-stations {
+            margin-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        .connected-stations:before {
+            content: "→ ";
+            color: var(--text-secondary);
+        }
+
+        .form-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-secondary);
+        }
+
+        .form-group {
+            margin: 10px 0;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+            color: var(--text-primary);
+        }
+
+        select, input[type="number"] {
+            padding: 8px;
+            width: 150px;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        select optgroup {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        select option {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .ticket {
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-secondary);
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--text-primary);
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        strong {
+            color: var(--text-primary);
+        }
+
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-color);
+        }
+
+        .station-link {
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .same-zone {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .different-zone {
+            background-color: var(--accent-color);
+            color: var(--text-primary);
+        }
+
+        .station-connections {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        .main-station {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .connected-stations {
+            margin-left: 20px;
+            line-height: 1.6;
+        }
+
+        select option.direct-connection {
+            background-color: var(--accent-color);
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        /* Style for optgroup labels */
+        select optgroup {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Improved select styling */
+        select {
+            padding: 8px;
+            width: 200px;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        /* Zone-based colors with better text contrast */
+        .zone-central {
+            color: #2c1518; /* Dark red-brown for text */
+            background-color: rgba(229, 115, 115, 0.2);
+            border-left: 3px solid #e57373;
+        }
+
+        .zone-midtown {
+            color: #1a237e; /* Dark blue for text */
+            background-color: rgba(100, 181, 246, 0.2);
+            border-left: 3px solid #64b5f6;
+        }
+
+        .zone-downtown {
+            color: #3e2723; /* Dark brown for text */
+            background-color: rgba(255, 241, 118, 0.2);
+            border-left: 3px solid #fff176;
+        }
+
+        /* Station card and text styles */
+        .station-card {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 6px;
+            background-color: var(--bg-secondary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .station-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .connected-stations {
+            margin-top: 8px;
+            padding-left: 15px;
+            color: var(--text-secondary);
+        }
+
+        /* Dropdown text colors */
+        select optgroup[label="Central"] {
+            color: #ffcdd2; /* Light pink */
+        }
+
+        select optgroup[label="Midtown"] {
+            color: #bbdefb; /* Light blue */
+        }
+
+        select optgroup[label="Downtown"] {
+            color: #fff9c4; /* Light yellow */
+        }
+
+        select option {
+            color: var(--text-primary);
+        }
+
+        .connection-line {
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .network-map {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .zone-column {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .zone-title {
+            font-size: 1.4em;
+            color: var(--text-primary);
+            padding: 10px;
+            margin: -15px -15px 15px -15px;
+            background-color: var(--bg-tertiary);
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .station-card {
+            margin: 10px 0;
+            padding: 12px 15px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .station-card:hover {
+            transform: translateX(5px);
+            box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Zone-specific styling */
+        .zone-central .station-card {
+            background: linear-gradient(to right, rgba(229, 115, 115, 0.1), rgba(229, 115, 115, 0.2));
+            border-left: 4px solid #e57373;
+        }
+
+        .zone-midtown .station-card {
+            background: linear-gradient(to right, rgba(100, 181, 246, 0.1), rgba(100, 181, 246, 0.2));
+            border-left: 4px solid #64b5f6;
+        }
+
+        .zone-downtown .station-card {
+            background: linear-gradient(to right, rgba(255, 241, 118, 0.1), rgba(255, 241, 118, 0.2));
+            border-left: 4px solid #fff176;
+        }
+
+        .station-connections {
+            position: relative;
+        }
+
+        .station-connections::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -20px;
+            width: 20px;
+            height: 2px;
+            background-color: var(--border-color);
+        }
+
+        select optgroup {
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+
+        select option.direct-connection {
+            background-color: var(--accent-color);
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        select option {
+            padding: 4px 8px;
+        }
+
+        select optgroup[label="Central"] option {
+            border-left: 2px solid #e57373;
+        }
+
+        select optgroup[label="Midtown"] option {
+            border-left: 2px solid #64b5f6;
+        }
+
+        select optgroup[label="Downtown"] option {
+            border-left: 2px solid #fff176;
+        }
+
+        /* Station text colors */
+        .station-name {
+            color: var(--text-primary);
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .connected-station {
+            color: var(--text-secondary);
+        }
+
+        /* Dropdown styles */
+        select {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        select option {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 8px 12px;
+        }
+
+        select optgroup {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        /* Direct connection highlight */
+        select option.direct-connection {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* Zone colors for stations */
+        .zone-central {
+            color: var(--text-primary);
+            background-color: rgba(229, 115, 115, 0.2); /* Light pink with transparency */
+        }
+
+        .zone-midtown {
+            color: var(--text-primary);
+            background-color: rgba(100, 181, 246, 0.2); /* Light blue with transparency */
+        }
+
+        .zone-downtown {
+            color: var(--text-primary);
+            background-color: rgba(255, 241, 118, 0.2); /* Light yellow with transparency */
+        }
+
+        /* Station card styles */
+        .station-card {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+        }
+
+        .station-connections {
+            margin-top: 8px;
+            padding-left: 15px;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .network-map {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .zone-column {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .zone-title {
+            font-size: 1.4em;
+            color: var(--text-primary);
+            padding: 10px;
+            margin: -15px -15px 15px -15px;
+            background-color: var(--bg-tertiary);
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+
+        /* Zone-specific station colors */
+        .station-card.central {
+            background-color: rgba(229, 115, 115, 0.2); /* Light pink */
+            color: #2c1518; /* Dark text for contrast */
+        }
+
+        .station-card.midtown {
+            background-color: rgba(100, 181, 246, 0.2); /* Light blue */
+            color: #1a237e; /* Dark text for contrast */
+        }
+
+        .station-card.downtown {
+            background-color: rgba(255, 241, 118, 0.2); /* Light yellow */
+            color: #3e2723; /* Dark text for contrast */
+        }
+
+        .station-card {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .station-card {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .station-card.central {
+            background-color: rgba(229, 115, 115, 0.3);
+        }
+
+        .station-card.midtown {
+            background-color: rgba(100, 181, 246, 0.3);
+        }
+
+        .station-card.downtown {
+            background-color: rgba(255, 241, 118, 0.3);
+        }
+
+        .ticket-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-home {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-calculate {
+            background-color: var(--accent-color);
+            color: white;
+            border: 1px solid var(--accent-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-home:hover {
+            background-color: var(--border-color);
+        }
+
+        .btn-calculate:hover {
+            background-color: #45a049;
+        }
+
+        /* Add transition for smooth fade out */
+        .ticket {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>CTA Ticketing System</h1>
+
+    <!-- Network Map Display -->
+    <div class="network-map">
+        {% for zone, stations in stations_in_zones.items %}
+        <div class="zone-column">
+            <h3 class="zone-title">{{ zone }}</h3>
+            {% for station in stations %}
+            <div class="station-card {{ zone|lower }}">
+                {{ station }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Station Selection Form -->
+    <div class="form-section" id="booking-form">
+        <h2>Select Journey</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="start_station">From:</label>
+                <select name="start_station" id="start_station" required>
+                    {% for zone, stations in stations_in_zones.items %}
+                    <optgroup label="{{ zone }}" class="zone-{{ zone|lower }}">
+                        {% for station in stations %}
+                        <option value="{{ station }}">{{ station }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="end_station">To:</label>
+                <select name="end_station" id="end_station" required>
+                    {% for zone, stations in stations_in_zones.items %}
+                    <optgroup label="{{ zone }}" class="zone-{{ zone|lower }}">
+                        {% for station in stations %}
+                        <option value="{{ station }}">{{ station }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Traveler inputs -->
+            <div class="travelers-section">
+                <h3>Travelers</h3>
+                <div class="form-group">
+                    <label for="adult">Adults:</label>
+                    <input type="number" name="adult" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="child">Children:</label>
+                    <input type="number" name="child" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="senior">Seniors:</label>
+                    <input type="number" name="senior" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="student">Students:</label>
+                    <input type="number" name="student" min="0" value="0">
+                </div>
+            </div>
+
+            <button type="submit">Calculate Fare</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startStation = document.getElementById('start_station');
+            const endStation = document.getElementById('end_station');
+            
+            function updateEndStations() {
+                const selectedStartStation = startStation.value;
+                const currentEndStation = endStation.value;
+                
+                // Show all options first
+                Array.from(endStation.options).forEach(option => {
+                    option.style.display = '';
+                });
+                
+                // Hide the selected start station from end dropdown
+                Array.from(endStation.options).forEach(option => {
+                    if (option.value === selectedStartStation) {
+                        option.style.display = 'none';
+                        // If this was the selected end station, reset the end station
+                        if (currentEndStation === selectedStartStation) {
+                            // Find the first visible option
+                            const firstVisibleOption = Array.from(endStation.options).find(opt => 
+                                opt.value !== selectedStartStation
+                            );
+                            if (firstVisibleOption) {
+                                endStation.value = firstVisibleOption.value;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Update when start station changes
+            startStation.addEventListener('change', updateEndStations);
+            
+            // Initial update
+            updateEndStations();
+        });
+
+        function clearVoucher() {
+            const voucher = document.getElementById('ticket-voucher');
+            if (voucher) {
+                voucher.style.opacity = '0';
+                setTimeout(() => {
+                    voucher.remove();
+                }, 300); // Wait for fade out animation
+            }
+        }
+
+        function clearVoucherAndGoHome() {
+            clearVoucher();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            // Clear form inputs
+            clearForm();
+        }
+
+        function clearVoucherAndGoToForm() {
+            clearVoucher();
+            const form = document.getElementById('booking-form');
+            if (form) {
+                form.scrollIntoView({behavior: 'smooth'});
+            }
+            // Clear form inputs
+            clearForm();
+        }
+
+        function clearForm() {
+            // Reset station selections
+            const startStation = document.getElementById('start_station');
+            const endStation = document.getElementById('end_station');
+            if (startStation) startStation.selectedIndex = 0;
+            if (endStation) endStation.selectedIndex = 0;
+
+            // Reset traveler counts
+            ['adult', 'child', 'senior', 'student'].forEach(type => {
+                const input = document.querySelector(`input[name="${type}"]`);
+                if (input) input.value = '0';
+            });
+        }
+    </script>
+
+    <!-- Ticket Display -->
+    {% if fare_details %}
+    <div class="ticket" id="ticket-voucher">
+        <h3>Travel Voucher</h3>
+        <p><strong>Date/Time:</strong> {{ ticket_time }}</p>
+        <p><strong>From Station:</strong> {{ start_station }} ({{ start_zone }} Zone)</p>
+        <p><strong>To Station:</strong> {{ end_station }} ({{ end_zone }} Zone)</p>
+        <p><strong>Zones Traveled:</strong> {{ zones_traveled }}</p>
+        
+        <h4>Fare Breakdown:</h4>
+        {% for category, details in fare_details.breakdown.items %}
+        <div>
+            <p><strong>{{ category|title }}s:</strong></p>
+            <ul>
+                <li>Count: {{ details.count }}</li>
+                <li>Fare per zone: {{ details.fare_per_zone|floatformat:2 }} cents</li>
+                <li>Total: {{ details.total|floatformat:2 }} cents</li>
+            </ul>
+        </div>
+        {% endfor %}
+        
+        <p><strong>Total Travelers:</strong> {{ fare_details.total_travelers }}</p>
+        <p><strong>Total Fare:</strong> {{ fare_details.total_fare|floatformat:2 }} cents</p>
+        
+        <!-- Navigation Buttons -->
+        <div class="ticket-actions">
+            <a href="#" class="btn btn-home" onclick="clearVoucherAndGoHome()">
+                <i class="fas fa-home"></i> Go Home
+            </a>
+            <a href="#booking-form" class="btn btn-calculate" onclick="clearVoucherAndGoToForm()">
+                <i class="fas fa-calculator"></i> Calculate Another Fare
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>
